@@ -1,15 +1,22 @@
 #!/usr/bin/env python
 #
 # [milu_bot] to reply Telegram messages
-# Query on urbandict and wolframalpha
-# Change yout telegramToken and wolframalphaAppId when you used code
+# Query on:
+#  - urbandict
+#  - wolframalpha
+#  - xkcd
+# Change your telegramToken and wolframalphaAppId when you used code
 # Copyright (C) 2015 khoai <dungcoivb@gmail.com>
 
 import logging
 import telegram
 import wolframalpha
 import urbandict
+import os, random
+import xkcd
 
+dirXinh = 'xkcn'
+listXinhUrl = 'xinh_urls.txt'
 teleToken = '128856974:AAE2yeS_CLucntiQbwF4DCtnsL1ROPQNA4M'
 wolfAppId = 'G3YRP3-G9L2GGJJVJ'
 wCli = wolframalpha.Client(wolfAppId)
@@ -37,7 +44,23 @@ def queryWolf(query):
 	wRes = wCli.query(query)
 	return pod2text(wRes)
 
+def randXinh():
+	while True:
+		file = random.choice(os.listdir(dirXinh))
+		if file[-3:] == 'jpg':
+			return dirXinh + '/' + file
+
+xinhUrls = open(listXinhUrl).read().splitlines()
+def randXinhUrl():
+	url = random.choice(xinhUrls)
+	return url
+
 listGoQuery = [queryUrbandict, queryWolf]
+
+def randXkcd():
+	comic = xkcd.getRandomComic()
+	url = comic.getImageLink()
+	return url
 
 def milu(bot):
 	global LAST_UPDATE_ID
@@ -52,11 +75,11 @@ def milu(bot):
 			LAST_UPDATE_ID = update.update_id + 1
 			continue
 
+		print ' - chat_id=' + str(chat_id) +', msg=' + msg
 		# implement [go] command
 		if msg.startswith('/go'):
-			question = msg[3:].strip()
-			print 'question:', question
 			try:
+				question = msg[3:].strip()
 				for query in listGoQuery:
 					answer = query(question)
 					print 'answer:', answer
@@ -67,7 +90,19 @@ def milu(bot):
 
 		# implement [xinh] command
 		if msg.startswith('/xinh'):
-			answer = 'implement at here'
+			try:
+				answer = ''
+				bot.sendPhoto(chat_id=chat_id, photo=randXinhUrl())
+			except:
+				pass
+
+		# implement [xinh] command
+		if msg.startswith('/xkcd'):
+			try:
+				answer = ''
+				bot.sendPhoto(chat_id=chat_id, photo=randXkcd())
+			except:
+				pass
 
 		if answer:
 			print ' -> ', answer
@@ -85,8 +120,10 @@ def main():
 	except IndexError:
 		LAST_UPDATE_ID = None
 
+	print '[+] Milu start'
 	while True:
 		milu(bot)
+	print '[+] Milu stop'
 
 if __name__ == '__main__':
 	main()
