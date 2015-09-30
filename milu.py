@@ -82,7 +82,6 @@ def milu(bot):
 				question = msg[3:].strip()
 				for query in listGoQuery:
 					answer = query(question)
-					print 'answer:', answer
 					if answer:
 						break
 			except:
@@ -122,7 +121,10 @@ def main():
 
 	print '[+] Milu start'
 	while True:
-		milu(bot)
+		try:
+			milu(bot)
+		except ValueError:
+			pass
 	print '[+] Milu stop'
 
 if __name__ == '__main__':
